@@ -1,0 +1,5 @@
+.vscode/
+CsharpClient/obj/
+CsharpClient/bin/
+Server/node_modules/
+CsharpClient/.idea/
