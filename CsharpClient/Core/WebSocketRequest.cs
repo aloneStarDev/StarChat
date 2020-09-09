@@ -1,13 +1,71 @@
 using System;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualBasic.FileIO;
+using Newtonsoft.Json;
 
 namespace CsharpClient.Core
 {
-    public abstract class WebSocketRequest
+    public class WebSocketRequest
     {
+        protected WebSocketRequest(dynamic parameter,string address)
+        {
+            Parameter = parameter;
+            Address = address;
+        }
         protected string BaseUrl = @"ws://127.0.0.1:8000/";
-        public abstract UserResponse Send();
+        protected string Address;
+        protected dynamic Parameter;
+        protected string Waite = "";
+        protected dynamic Raw;
+        protected CallBack Call;
+        public delegate void CallBack();
+
+        public UserResponse Send()
+        {
+            var output = new List<string>();
+            ClientWebSocket ws = null;
+            var cancellationToken = new CancellationToken();
+            try
+            {
+                ws = new ClientWebSocket();
+                var awaiter = ws.ConnectAsync(new Uri(this.BaseUrl + Address), cancellationToken).GetAwaiter();
+                awaiter.GetResult();
+                Console.WriteLine("connected");
+                var text = JsonConvert.SerializeObject(Parameter);
+                ArraySegment<byte> parameter = new ArraySegment<byte>(Encoding.UTF8.GetBytes(text));
+                ws.SendAsync(parameter, WebSocketMessageType.Text, true, cancellationToken);
+                Console.Write($"Your {Waite} Request Send to Server Please Wait");
+                ArraySegment<byte> response = new ArraySegment<byte>(new byte[1024]);
+                Task<WebSocketReceiveResult> wsResult = ws.ReceiveAsync(response, cancellationToken);
+                new Task(() =>
+                {
+                    while (!wsResult.IsCompletedSuccessfully)
+                    {
+                        Console.Write(".");
+                        Thread.Sleep(1000);
+                    }
+                }).Start();
+                if (wsResult.GetAwaiter().GetResult().MessageType == WebSocketMessageType.Text)
+                {
+                    Raw = JsonConvert.DeserializeObject<dynamic>(Encoding.UTF8.GetString(response));
+                    foreach (var x in Raw.msg)
+                        output.Add(x.message.ToString());
+                    if ((bool) Raw.ok && Call != null)
+                            Call();
+                }
+                ws.CloseAsync(WebSocketCloseStatus.NormalClosure, null!, cancellationToken);
+            }
+            catch (MalformedLineException exception)
+            {
+                output.Add(ResponseType.clientErr + "");
+            }
+
+            return new UserResponse(output);
+        }
     }
 
     public class UserResponse
@@ -43,7 +101,22 @@ namespace CsharpClient.Core
         }
         public void Print()
         {
+            ConsoleColor cc = Console.ForegroundColor;
+            if (Msg.ToLower().Contains("successful"))
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine(Msg);
+            Task.Run(() =>
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                for (int i = 0; i < 5; i++)
+                {
+                    Console.Write($"\rafter 5 second Console Will Clear:{i}");
+                    Thread.Sleep(1000);
+                }
+                Console.Clear();
+                Console.ForegroundColor = cc;
+                Console.WriteLine("-> Show Menu again press 0 or if you now your menu number enter this:");
+            });
         }
     }
 }

@@ -5,7 +5,7 @@ const mongo = MongoClient;
 
 const mongoURL = "mongodb://localhost:27017/star";
 let wss = new WebSocket.Server({port:8000,host:"localhost"});
-
+var online = new Set();
 wss.on("connection",function(ws,req){
   req.setEncoding("utf-8");
   ws.on("ping",function(data){
@@ -18,11 +18,81 @@ wss.on("connection",function(ws,req){
     case "/register":
       ws.on("message",wsRegister(ws));
       break;
-    case "/contact/add":
-      ws.on("message",wsAddContact(ws));
+    default:
+      ws.on("message",function(message){
+        let emiter = new events.EventEmitter();
+        let res = {ok:true,err:0,msg:[]};
+        try{
+          let data = JSON.parse(message);
+          identity(ws,data,emiter,res);
+          emiter.on("authenticated",function(){
+            ws.on("close",offline(ws.user));
+            switch(req.url.toLowerCase()){
+              case "/contact/add":
+                wsAddContact(ws,data,res,emiter);
+              break;
+              case "/getupdate":
+                wsGetUpdate(ws,data,res,emiter);
+              break;
+            }
+          });
+          
+        }catch(err){
+          if(err.message.includes("JSON"))
+            chgRes(res,"invalidJsonRequest",5,true);
+          else{
+            console.log(err.message);
+            chgRes(res,"500 server Error",-1,true);
+          }
+          ws.send(JSON.stringify(res));
+        }
+      });
       break;
   }
 });
+function offline(username){
+  return function(code, reason){
+    let active = false;
+    wss.clients.forEach(client => { 
+      if(client.user && client.user === username)
+        active = true;
+    });
+    if(!active){
+      online.delete(username);
+    }
+  }
+}
+function identity(ws,data,emiter,res){
+  emiter.on("authRequired",function(){
+    ws.send(JSON.stringify(res));
+  });
+  if(!data.hasOwnProperty('id'))
+  {
+    chgRes(res,"idRequired",1,true);
+    emiter.emit("authRequired")
+  }
+  else if(typeof data.id == "string" && data.id.length != 24)
+  {
+    chgRes(res,"malformId:str should be 24 hex string",0xB,true);
+    emiter.emit("authRequired");
+  }
+  else
+    new mongo(mongoURL).connect(function(err,db){
+      let dbo = db.db("star");
+      dbo.collection("users").findOne({_id : new ObjectId(data.id)},function (err,user){
+        if(user){
+          online.add(user.username);
+          ws.user = user.username;
+          emiter.emit("authenticated");
+        }
+        else{
+          chgRes(res,"userNotFound",6,true);
+          emiter.emit("authRequired");
+        }
+      });
+      db.close();
+    });
+}
 function chgRes(res,msg="NotImplemented",code=0,err=false){
   if(res.hasOwnProperty("err") && err){
     res.err++;
@@ -155,78 +225,63 @@ function wsRegister(ws){
     },2000);
   }
 }
-function wsAddContact(ws){
-  return function(message){
-    let user = null;
-    let contact = null;
-    var contactChangeEmiter = new events.EventEmitter();
-    let res = {ok:true,err:0,msg:[]};
-    try{
-      let data = JSON.parse(message);
-      if(!data.hasOwnProperty('id'))
-        chgRes(res,"idRequired",7,true);
-      else if(typeof data.id == "string" && data.id.length != 24)
-          chgRes(res,"malformId:str should be 24 hex string",0xB,true);
-      if(!data.hasOwnProperty('username'))
-        chgRes(res,"usernameRequired",3,true);
-      if(res.ok){
-        new mongo(mongoURL).connect(function(err,db){
-          let dbo = db.db("star");
-          dbo.collection("users").find({_id:new ObjectId(data.id)}).toArray(function(err,result){
-            if(result.length == 0)
-              chgRes(res,"invalidId",-1,true);
-            else if(result.length == 1)
-              user = result[0];
-            else if(result.length > 1)
-              chgRes(res,"500 multipleId",-1,true);
-          });
-          
-          dbo.collection("users").find({username:data.username}).toArray(function(err,result){
-            if(result.length == 0)
-              chgRes(res,"usernameNotFound",8,true);
-            else if(user != null && result.length == 1 )
-              if(user.contact.includes(result[0]._id.toString()))
-                chgRes(res,"contactAlreadyAdded",0xA,true);
-              else
-                contact = result[0];
-            else if(result.length>1)
-              chgRes(res,"500 multipleUsername",-1,true);
-            contactChangeEmiter.emit("change");
-          });
-          db.close();
-        })
-      }
-      contactChangeEmiter.on("change",function(){
-        if(res.ok && user != null && contact != null)
-          new mongo(mongoURL).connect(function(err,db){
-            let dbo = db.db("star");
-            dbo.collection("users").updateOne({_id:new ObjectId(data.id)},{$push:{contact:contact._id.toString()}},function(err,result){
-              if(result.result.n === 1)
-                chgRes(res,"contactAddesSuccessfully",0);
-              else
-                chgRes(res,"500 ServerError",-1,true);
-            });
-            db.close();
-          });
+function wsAddContact(ws,data,res,emiter){
+  let user = null;
+  let contact = null;
+  if(!data.hasOwnProperty('username'))
+    chgRes(res,"usernameRequired",3,true);
+  if(res.ok){
+    new mongo(mongoURL).connect(function(err,db){
+      let dbo = db.db("star");
+      dbo.collection("users").findOne({_id:new ObjectId(data.id)},function(err,result){
+        user = result;
       });
-    }catch(err){
-      if(err.message.includes("JSON"))
-        chgRes(res,"invalidJsonRequest",5,true);
-      else
-        console.log(err.message);
-    }
-    setTimeout(function(){
-      ws.send(JSON.stringify(res))
-    },2000);
-  }
-}
-function wsRemoveContact(ws){
-  return function(message){
-    let res = {ok:true,err:0,msg:[]};
-    try{
-    }catch(err){
       
-    }
+      dbo.collection("users").find({username:data.username}).toArray(function(err,result){
+        if(result.length == 0)
+          chgRes(res,"usernameNotFound",8,true);
+        else if(user != null && result.length == 1 )
+          if(user.contact.includes(data.username))
+            chgRes(res,"contactAlreadyAdded",0xA,true);
+          else
+            contact = result[0];
+        else if(result.length>1)
+          chgRes(res,"500 multipleUsername",-1,true);
+          emiter.emit("change");
+      });
+      db.close();
+    })
+  }
+  emiter.on("change",function(){
+    if(res.ok && user != null && contact != null)
+      new mongo(mongoURL).connect(function(err,db){
+        let dbo = db.db("star");
+        dbo.collection("users").updateOne({_id:new ObjectId(data.id)},{$push:{contact:contact.username}},function(err,result){
+          if(result.result.n === 1)
+            chgRes(res,"contactAddesSuccessfully",0);
+          else
+            chgRes(res,"500 ServerError",-1,true);
+        });
+        db.close();
+      });
+  });
+  setTimeout(function(){
+    ws.send(JSON.stringify(res))
+  },2000);
+  
+}
+function wsRemoveContact(ws,data,res,emiter){
+  
+}
+function wsGetUpdate(ws,data,res,emiter){
+  if(res.ok)
+  {
+    new mongo(mongoURL).connect(function(err,db){
+      let dbo = db.db("star");
+      dbo.collection("users").findOne({_id:new ObjectId(data.id)},function(err,result){
+      });
+      db.close();
+    });
   }
 }
 function generateKey(){
