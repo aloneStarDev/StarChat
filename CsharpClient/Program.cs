@@ -38,9 +38,7 @@ namespace CsharpClient
                             _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("id"));
                             break;
                         case 2:
-                            
                             Register.Build().Send().Response().Print();
-                            
                             _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("id"));
                             break;
                     }

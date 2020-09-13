@@ -41,7 +41,10 @@ wss.on("connection",function(ws,req){
                 wsAddContact(ws,data,res,emiter);
               break;
               case "/":
-                wsGetUpdate(ws,data,res,emiter);
+                // wsGetUpdate(ws,data,res,emiter);
+                setInterval(function(){
+                  ws.send("ping");
+                },1000);
               break;
             }
           });

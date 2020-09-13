@@ -19,16 +19,14 @@ namespace CsharpClient
 
         private void OnMessage()
         {
-            if (ws.State != WebSocketState.Open)
-            {
-                Interval = null;
-                GC.Collect();
-                Connect();
-            }
-            _incomingBuffer = new  ArraySegment<byte>(new byte[1024]);
+            _incomingBuffer = new  ArraySegment<byte>(new byte[100]);
             ws.ReceiveAsync(_incomingBuffer, default).GetAwaiter().OnCompleted(() =>
             {
                 string response = Encoding.UTF8.GetString(_incomingBuffer);
+                Console.WriteLine(response);
+                _incomingBuffer = null;
+                GC.Collect();
+                OnMessage();
             });
         }
 
@@ -42,19 +40,14 @@ namespace CsharpClient
             ws.SendAsync(_outgoingBuffer, WebSocketMessageType.Text, true, default).GetAwaiter().OnCompleted(() =>
             {
                 Console.WriteLine("api token has been send");
-                Interval = new Timer
-                {
-                    Interval = 1000,
-                    Enabled = true
-                };
-                Interval.Elapsed += (sender, args) => { OnMessage(); };
+                OnMessage();
             });
             
         }
 
         private void Connect()
         {
-            ws = new ClientWebSocket(){Options = { KeepAliveInterval = TimeSpan.FromSeconds(5)}};
+            ws = new ClientWebSocket();
             ws.ConnectAsync(new Uri(FileManager.Configuration["WebsocketAddress"]), default).GetAwaiter().OnCompleted(()=>
             {
                 if (ws.State == WebSocketState.Open)
