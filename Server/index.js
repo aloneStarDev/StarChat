@@ -1,16 +1,18 @@
 const WebSocket = require('ws');
 const { MongoClient, ObjectId } = require('mongodb');
 const events = require('events');
+const { Console } = require('console');
 const mongo = MongoClient;
 
 const mongoURL = "mongodb://localhost:27017/star";
 let wss = new WebSocket.Server({port:8000,host:"localhost"});
 var online = new Set();
+
+
+
 wss.on("connection",function(ws,req){
+  
   req.setEncoding("utf-8");
-  ws.on("ping",function(data){
-    console.log("this is ping ->"+data);
-  });
   switch(req.url){
     case "/login":
       ws.on("message",wsLogin(ws));
@@ -26,19 +28,27 @@ wss.on("connection",function(ws,req){
           let data = JSON.parse(message);
           identity(ws,data,emiter,res);
           emiter.on("authenticated",function(){
+            ws.on("close",function(arg){
+              console.log("close:"+arg);
+            });
+            ws.on("error",function(err,code){
+              console.log("code:"+code+" ->error:"+err);
+            });
+            sendInterupt();
             ws.on("close",offline(ws.user));
             switch(req.url.toLowerCase()){
               case "/contact/add":
                 wsAddContact(ws,data,res,emiter);
               break;
-              case "/getupdate":
+              case "/":
                 wsGetUpdate(ws,data,res,emiter);
               break;
             }
           });
           
         }catch(err){
-          if(err.message.includes("JSON"))
+        console.log(err);  
+	if(err.message.includes("JSON"))
             chgRes(res,"invalidJsonRequest",5,true);
           else{
             console.log(err.message);
@@ -59,6 +69,7 @@ function offline(username){
     });
     if(!active){
       online.delete(username);
+      sendInterupt();
     }
   }
 }
@@ -81,6 +92,7 @@ function identity(ws,data,emiter,res){
       let dbo = db.db("star");
       dbo.collection("users").findOne({_id : new ObjectId(data.id)},function (err,user){
         if(user){
+          console.log(user.username);
           online.add(user.username);
           ws.user = user.username;
           emiter.emit("authenticated");
@@ -92,6 +104,24 @@ function identity(ws,data,emiter,res){
       });
       db.close();
     });
+}
+function sendInterupt(){
+  wss.clients.forEach(client=>{
+    let onlineContactForEachClient = [];
+    if(client.user)
+    new mongo(mongoURL).connect(function(err,db){
+      let dbo = db.db("star");
+      dbo.collection("users").findOne({username:client.user},function(err,result){
+        result.contact.forEach(x=>{
+          if(online.has(x)){
+            onlineContactForEachClient.push(x);
+          }
+        });
+        client.send(JSON.stringify(onlineContactForEachClient));
+      });
+      db.close();
+    });
+  });
 }
 function chgRes(res,msg="NotImplemented",code=0,err=false){
   if(res.hasOwnProperty("err") && err){
@@ -276,12 +306,7 @@ function wsRemoveContact(ws,data,res,emiter){
 function wsGetUpdate(ws,data,res,emiter){
   if(res.ok)
   {
-    new mongo(mongoURL).connect(function(err,db){
-      let dbo = db.db("star");
-      dbo.collection("users").findOne({_id:new ObjectId(data.id)},function(err,result){
-      });
-      db.close();
-    });
+    
   }
 }
 function generateKey(){
