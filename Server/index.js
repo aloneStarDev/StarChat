@@ -41,10 +41,7 @@ wss.on("connection",function(ws,req){
                 wsAddContact(ws,data,res,emiter);
               break;
               case "/":
-                // wsGetUpdate(ws,data,res,emiter);
-                setInterval(function(){
-                  ws.send("ping");
-                },1000);
+                
               break;
             }
           });
@@ -85,15 +82,15 @@ function identity(ws,data,emiter,res){
     chgRes(res,"idRequired",1,true);
     emiter.emit("authRequired")
   }
-  else if(typeof data.id == "string" && data.id.length != 24)
+  else if(typeof data.id == "string" && data.id.length != 30)
   {
-    chgRes(res,"malformId:str should be 24 hex string",0xB,true);
+    chgRes(res,"malformId:str should be 30 hex string",0xB,true);
     emiter.emit("authRequired");
   }
   else
     new mongo(mongoURL).connect(function(err,db){
       let dbo = db.db("star");
-      dbo.collection("users").findOne({_id : new ObjectId(data.id)},function (err,user){
+      dbo.collection("users").findOne({_id : new ObjectId(data.id.substr(6))},function (err,user){
         if(user){
           console.log(user.username);
           online.add(user.username);
@@ -172,13 +169,25 @@ function wsLogin(ws){
         chgRes(res,"usernameRequired",1,true);
       if(!data.hasOwnProperty('password'))
         chgRes(res,"passwordRequired",2,true);
-
+      Emiter.on("updateToken",function(id){
+        let token = generateKey();
+        new mongo(mongoURL).connect(function(err,db){
+          let dbo = db.db("star");
+          dbo.collection("users").findOneAndUpdate({$and:[{username:data.username},{password: data.password}]},{token:token},function(err,result){
+            if(err) throw err;
+            res.token = token.concat(id);
+          });
+          dbo.close();
+        });
+      });
       Emiter.on("ok",function(){
         new mongo(mongoURL).connect(function(err,db){
           let dbo = db.db("star");
-          dbo.collection("users").findOne({username:data.username},function(err,result){
-             res.userId = result._id.toString();
-             res.token = result.token;
+          dbo.collection("users").findOne({$and:[{username:data.username},{password: data.password}]},function(err,result){
+             if(result.token!=null){
+               res.token = result.token.toString()+result._id.toString();
+             }else
+               emiter.emit("updateToken",result.token.toString());
           });
           db.close();
         });
@@ -227,11 +236,11 @@ function wsRegister(ws){
         if(res.ok)
           new mongo(mongoURL).connect(function(err,db){
             let dbo = db.db("star");
-            data.token = generateKey();
-            res.token = data.token;
             data.contact = [];
+            let token = generateKey();
+            data.token = token;
             dbo.collection("users").insertOne(data,function(err,result){
-              res.userId = result.insertedId.toString();
+              res.token = token.concat(result.insertedId.toString());
             });
             db.close();
           });
@@ -324,11 +333,11 @@ function wsAddContact(ws){
   }
 }
 function generateKey(){
-  let key = "v$";
+  let key = "";
   function random(min,max) {
     return String.fromCharCode(Math.floor(Math.random() * (max - min) + min));
   } 
-  for(let i=0;i<10;i++){
+  for(let i=0;i<5;i++){
     let seed = Math.floor(Math.random()*100)%3;
     switch(seed){
       case 0:
@@ -342,5 +351,6 @@ function generateKey(){
         break;
     }
   }
+  key +="0";
   return key;
 }
