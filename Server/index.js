@@ -21,6 +21,8 @@ wss.on("connection",function(ws,req){
       ws.on("message",wsRegister(ws));
       break;
     default:
+      if(ws.user)
+        sendInterupt();
       ws.on("message",function(message){
         let emiter = new events.EventEmitter();
         let res = {ok:true,err:0,msg:[]};
@@ -28,20 +30,13 @@ wss.on("connection",function(ws,req){
           let data = JSON.parse(message);
           identity(ws,data,emiter,res);
           emiter.on("authenticated",function(){
-            ws.on("close",function(arg){
-              console.log("close:"+arg);
-            });
-            ws.on("error",function(err,code){
-              console.log("code:"+code+" ->error:"+err);
-            });
-            sendInterupt();
             ws.on("close",offline(ws.user));
             switch(req.url.toLowerCase()){
               case "/contact/add":
                 wsAddContact(ws,data,res,emiter);
               break;
               case "/":
-                
+                wsLogout(ws,data,res,emiter);
               break;
             }
           });
@@ -173,11 +168,11 @@ function wsLogin(ws){
         let token = generateKey();
         new mongo(mongoURL).connect(function(err,db){
           let dbo = db.db("star");
-          dbo.collection("users").findOneAndUpdate({$and:[{username:data.username},{password: data.password}]},{token:token},function(err,result){
+          dbo.collection("users").updateOne({$and:[{username:data.username},{password: data.password}]},{$set:{token:token}},function(err,result){
             if(err) throw err;
             res.token = token.concat(id);
           });
-          dbo.close();
+          db.close();
         });
       });
       Emiter.on("ok",function(){
@@ -187,7 +182,7 @@ function wsLogin(ws){
              if(result.token!=null){
                res.token = result.token.toString()+result._id.toString();
              }else
-               emiter.emit("updateToken",result.token.toString());
+               Emiter.emit("updateToken",result._id.toString());
           });
           db.close();
         });
@@ -267,70 +262,64 @@ function wsRegister(ws){
     },2000);
   }
 }
-function wsAddContact(ws){
-  return function(message){
-    let user = null;
-    let contact = null;
-    var contactChangeEmiter = new events.EventEmitter();
-    let res = {ok:true,err:0,msg:[]};
-    try{
-      let data = JSON.parse(message);
-      if(!data.hasOwnProperty('id'))
-        chgRes(res,"idRequired",7,true);
-      else if(typeof data.id == "string" && data.id.length != 24)
-          chgRes(res,"malformId:str should be 24 hex string",0xB,true);
-      if(!data.hasOwnProperty('username'))
-        chgRes(res,"usernameRequired",3,true);
-      if(res.ok){
-        new mongo(mongoURL).connect(function(err,db){
-          let dbo = db.db("star");
-          dbo.collection("users").find({_id:new ObjectId(data.id)}).toArray(function(err,result){
-            if(result.length == 0)
-              chgRes(res,"invalidId",-1,true);
-            else if(result.length == 1)
-              user = result[0];
-            else if(result.length > 1)
-              chgRes(res,"500 multipleId",-1,true);
-          });
-          
-          dbo.collection("users").find({username:data.username}).toArray(function(err,result){
-            if(result.length == 0)
-              chgRes(res,"usernameNotFound",8,true);
-            else if(user != null && result.length == 1 )
-              if(user.contact.includes(result[0]._id.toString()))
-                chgRes(res,"contactAlreadyAdded",0xA,true);
-              else
-                contact = result[0];
-            else if(result.length>1)
-              chgRes(res,"500 multipleUsername",-1,true);
-            contactChangeEmiter.emit("change");
-          });
-          db.close();
-        })
-      }
-      contactChangeEmiter.on("change",function(){
-        if(res.ok && user != null && contact != null)
-          new mongo(mongoURL).connect(function(err,db){
-            let dbo = db.db("star");
-            dbo.collection("users").updateOne({_id:new ObjectId(data.id)},{$push:{contact:contact._id.toString()}},function(err,result){
-              if(result.result.n === 1)
-                chgRes(res,"contactAddesSuccessfully",0);
-              else
-                chgRes(res,"500 ServerError",-1,true);
-            });
-            db.close();
-          });
+function wsAddContact(ws,data,res,emiter){
+  let user = null;
+  let contact = null;
+  var contactChangeEmiter = emiter;
+  if(!data.hasOwnProperty('username'))
+    chgRes(res,"usernameRequired",3,true);
+  if(res.ok){
+    new mongo(mongoURL).connect(function(err,db){
+      let dbo = db.db("star");
+      dbo.collection("users").findOne({_id:new ObjectId(data.id.substr(6))},function(err,result){
+        if(result)
+          user = result;
+        contactChangeEmiter.emit("userFind");
       });
-    }catch(err){
-      if(err.message.includes("JSON"))
-        chgRes(res,"invalidJsonRequest",5,true);
-      else
-        console.log(err.message);
-    }
-    setTimeout(function(){
-      ws.send(JSON.stringify(res))
-    },2000);
+      db.close();
+    });
   }
+  contactChangeEmiter.on("userFind",function(){
+    new mongo(mongoURL).connect(function(err,db){
+      let dbo = db.db("star");
+      dbo.collection("users").find({username:data.username}).toArray(function(err,result){
+        if(result.length == 0)
+          chgRes(res,"usernameNotFound",8,true);
+        else if(user != null && result.length == 1 ){
+          if(user.contact.includes(data.username))
+            chgRes(res,"contactAlreadyAdded",0xA,true);
+          else{
+            contact = result[0];
+            contactChangeEmiter.emit("change");
+          }
+        }
+        else if(result.length > 1)
+          chgRes(res,"500 multipleUsername",-1,true);
+      });
+      db.close();
+    });
+  });
+  contactChangeEmiter.on("change",function(){
+    if(res.ok && user != null && contact != null)
+      new mongo(mongoURL).connect(function(err,db){
+        let dbo = db.db("star");
+        dbo.collection("users").updateOne({_id:new ObjectId(data.id.substr(6))},{$push:{contact:contact.username}},function(err,result){
+          if(result.result.n === 1)
+            chgRes(res,"contactAddedSuccessfully",0);
+          else
+            chgRes(res,"500 ServerError",-1,true);
+        });
+        db.close();
+      });
+  });
+
+  setTimeout(function(){
+      ws.send(JSON.stringify(res))
+  },2000);
+
+}
+function wsLogout(){
+
 }
 function generateKey(){
   let key = "";
