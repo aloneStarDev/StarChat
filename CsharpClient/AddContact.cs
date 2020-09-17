@@ -10,20 +10,35 @@ using Newtonsoft.Json;
 
 namespace CsharpClient
 {
-    public class AddContact:WebSocketRequest
+    public class AddContact:WebSocketHub
     {
-
-        public AddContact(string username, string id):base(new {username=username,id=id},@"contact/add") => Call=Save;
-
-        private void Save() =>
-            Console.WriteLine($"store in progress : {FileManager.CreateInstance().AddContact((string) Parameter.username)}");
-        
+        private string username;
+        private AddContact(string username):base(FileManager.Configuration["WebsocketAddress"]+"contact/add")
+        {
+            this.username = username;
+        }
         public static AddContact Build()
         {
             Console.WriteLine("Enter Username To Search:");
             string username = Console.ReadLine();
-            string id = FileManager.CreateInstance().Fetch("id");
-            return new AddContact(username,id);
+            return new AddContact(username);
+        }
+        protected override void Scene()
+        {
+            
+        }
+
+        protected override void SendAuthenticationToken()
+        {
+            string id = FileManager.CreateInstance().Fetch("token");
+            _outgoingBuffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new {id,username})));
+            Ws.SendAsync(_outgoingBuffer, WebSocketMessageType.Text, true, default).GetAwaiter().OnCompleted(() =>
+            {
+                Console.WriteLine("Connected..");
+                Console.WriteLine("token has been Send..");
+                Thread.Sleep(500);
+                OnMessage();
+            });
         }
     }
 }

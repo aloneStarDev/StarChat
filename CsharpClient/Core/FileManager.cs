@@ -86,9 +86,9 @@ namespace CsharpClient.Core
                 var path = "Secret" + Path.DirectorySeparatorChar + "token.lock";
                 if (!File.Exists(path))
                     File.Create(path).Close();
-                
+                if (!String.IsNullOrWhiteSpace(Fetch("token")))
+                    return false;
                 FileStream fs = File.Open(path, FileMode.Append);
-                
                 BufferedStream bs = new BufferedStream(fs);
                 StringBuilder sb = new StringBuilder();
                 sb.Append(key);
@@ -96,7 +96,7 @@ namespace CsharpClient.Core
                 sb.Append(value);
                 sb.Append("#");
                 byte[] buffer = Encoding.UTF8.GetBytes(sb.ToString());
-                Crypto.Encrypt(ref buffer);
+                // Crypto.Encrypt(ref buffer);
                 bs.Write(buffer);
                 bs.Close();
                 fs.Close();
@@ -119,7 +119,7 @@ namespace CsharpClient.Core
             BufferedStream bs = new BufferedStream(fs);
             byte[] buffer = new byte[bs.Length];
             bs.Read(buffer);
-            Crypto.Decrypt(ref buffer);
+            // Crypto.Decrypt(ref buffer);
             List<string> lines = Encoding.UTF8.GetString(buffer).Split("#").ToList();
             foreach (var line in lines)
             {
@@ -133,7 +133,6 @@ namespace CsharpClient.Core
                     }
                 }
             }
-
             bs.Close();
             fs.Close();
             return value;

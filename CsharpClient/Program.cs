@@ -35,13 +35,15 @@ namespace CsharpClient
                     {
                         case 1:
                             Login.Build().Send().Response().Print();
-                            _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("id"));
+                            _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("token"));
                             break;
                         case 2:
                             Register.Build().Send().Response().Print();
-                            _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("id"));
+                            _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("token"));
                             break;
                     }
+                    if (_isLogin)
+                        break;
                 }
                 catch (Exception e)
                 {
@@ -57,7 +59,7 @@ namespace CsharpClient
 
         static void Main(string[] args)
         {
-            _isLogin = !string.IsNullOrEmpty(FileManager.CreateInstance().Fetch("id"));
+            _isLogin = !String.IsNullOrEmpty(FileManager.CreateInstance().Fetch("token"));
             Start();
         }
     }

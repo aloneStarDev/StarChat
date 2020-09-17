@@ -12,7 +12,7 @@ namespace CsharpClient
 {
     public class Login : WebSocketRequest
     {   
-        private Login(string username, string password):base(new {username=username,password= password},"login") => Call = Save;
+        private Login(string username, string password):base(new {username,password},"login") => Call = Save;
         public static Login Build()
         {
             Console.WriteLine("Enter Your Username:");
@@ -24,10 +24,10 @@ namespace CsharpClient
         private void Save()
         {
             FileManager fm = FileManager.CreateInstance();
-            fm.Store("id",(string)Raw.userId);
-            fm.Store("token",(string)Raw.token);
-            fm.Store("username",(string)Parameter.username);
-            fm.Store("password",(string)Parameter.password);
+            if(fm.Store("token",(string)Raw.token))
+                Console.WriteLine("Almost Done");
+            else
+                Console.WriteLine("Fail in Store Api Token");
         }
     }
 }

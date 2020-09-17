@@ -24,7 +24,7 @@ namespace CsharpClient.Core
         protected CallBack Call;
         public delegate void CallBack();
 
-        public UserResponse Send()
+        public virtual UserResponse Send()
         {
             var output = new List<string>();
             ClientWebSocket ws = null;
@@ -51,7 +51,8 @@ namespace CsharpClient.Core
                 }).Start();
                 if (wsResult.GetAwaiter().GetResult().MessageType == WebSocketMessageType.Text)
                 {
-                    Raw = JsonConvert.DeserializeObject<dynamic>(Encoding.UTF8.GetString(response));
+                    var resTxt = Encoding.UTF8.GetString(response);
+                    Raw = JsonConvert.DeserializeObject<dynamic>(resTxt);
                     foreach (var x in Raw.msg)
                         output.Add(x.message.ToString());
                     if ((bool) Raw.ok && Call != null)
