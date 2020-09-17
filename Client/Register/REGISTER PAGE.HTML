@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" type="text/css" href="register.css">
+<script src="./register.js"></script>
+<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+
+<head>
+    <title>register page</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <a href="" class="typewrite" data-period="2000"
+                data-type='[ "Hi, Im Alikh157.", "Enter your info", "And enjoy chatting." ]'>
+                <span class="wrap"></span>
+            </a>
+        </h1>
+        <form>
+            <div class="input-field">
+                <input type="text" name="" required="4digit" id="FullName">
+                <label>Please enter your Fullname</label>
+                <span></span>
+            </div>
+            <div class="input-field" style="margin-top: 35px;">
+                <input type="text" name="" required="" id="Username">
+                <label>Please enter your UserName</label>
+                <span></span>
+            </div>
+            <div class="input-field" style="margin-top: 35px;">
+                <input type="text" name="" required="" id="Phone_No">
+                <label>Please enter your Phone no.</label>
+                <span></span>
+            </div>
+            <div class="input-field" style="margin-top: 35px;">
+                <input type="password" name="" required="" id="Password">
+                <label>Please enter your Password</label>
+                <span></span>
+            </div>
+            <div class="input-field" style="margin-top: 35px;">
+                <input type="password" name="" required="" id="ConfPassword">
+                <label>Please confirm your Password</label>
+                <span></span>
+            </div>
+            <a class="classa" href="#" onclick="connect()">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                submit
+            </a>
+        </form>
+    </div>
+    <script>
+        var ws = null;
+        function connect() {
+            let url = "ws://15246c9dc402.ngrok.io/register";
+            ws = new WebSocket(url);
+            ws.onmessage = message;
+            ws.onclose = close;
+            ws.onerror = error;
+            ws.onopen = open;
+        }
+        let timer = 0;
+        function open() {
+            setInterval(() => timer++, 1000);
+            console.log("opend");
+            let parameter = {};
+            parameter.name = document.getElementById("FullName").value;
+            parameter.username = document.getElementById("Username").value;
+            parameter.phone = document.getElementById("Phone_No").value;
+            parameter.password = document.getElementById("Password").value;
+            let data = JSON.stringify(parameter);
+            ws.send(data);
+        }
+        function message(res) {
+            let result=JSON.parse(res.data);
+            if(result.ok){
+                alert("register was successfull");
+                localStorage.setItem("token",result.token);
+            }
+
+        }
+        function error(err) {
+            console.error(err);
+        }
+        function close() {
+            console.log("closed :" + timer);
+        }
+    </script>
+</body>
+
+</html>
