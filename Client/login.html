@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link type="text/css" rel="stylesheet" href="styles/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+    <title>Star-Chat Login</title>
+  </head>
+  <body>
+    <script type="text/x-shader" id="fragmentShader">
+      #ifdef GL_ES
+      precision mediump float;
+      #endif
+
+      uniform float time;
+      uniform vec2 resolution;
+
+      #define iTime time
+      #define iResolution resolution
+
+      mat2 r2(float a) {
+          float s = sin(a), c = cos(a);
+          return mat2(c,-s,s,c);
+      }
+
+      vec4 hash(vec4 a) {
+          return fract(abs(sin(a.ywxz*766.345)+cos(normalize(a)*4972.92855))*2048.97435+abs(a.wxyz)*.2735);
+      }
+
+      float caustics(vec2 p, vec2 uv) {
+          float s = 0.;
+          for (float l = 1.; l < 5.; l++) {
+              vec4 lh = hash(l*vec4(.01,.1,1.,10.));
+              vec2 ruv = mod(abs((p.xy-(lh.xy*2.-1.))*r2(time*.1+l*.01+log(1.+length(uv.xy)*(1.+l*l)))),.4)-.2,
+                  auv = abs(ruv)-.2;
+              s += pow(max(-auv.x,-auv.y)*5.,8.);
+          }
+          return s;
+      }
+
+
+      void mainImage( out vec4 fragColor, in vec2 fragCoord )
+      {
+          vec2 uv = (fragCoord*2.-iResolution.xy)/iResolution.y;
+
+          vec3 rd = normalize(vec3(uv.xy,.1));
+          float s = 0.;
+          for (float t = .1; t < 3.; t += .2) {
+              s += caustics((rd*t).xy,uv)/t;
+          }
+          fragColor = vec4(1.-pow(s*.03,1.));
+      }
+      void main(void)
+      {
+          mainImage(gl_FragColor, gl_FragCoord.xy);
+      }
+    </script>
+    <div id="app">
+      <div
+        v-bind:class="{'dark-bg':state==0,'danger-bg':state==1,'success-bg':state==2}"
+      >
+        <div class="scene scene--card">
+          <div class="card login-box">
+            <div class="card__face">
+              <div class="login-title" style="margin-top: 20px">Star-Chat</div>
+              <input v-model="username" placeholder="username" />
+              <input
+                type="password"
+                v-model="password"
+                placeholder="password"
+              />
+              <button class="login-btn" v-on:click="login">login</button>
+              <span>
+                <a href="/signup">
+                  <i class="fas fa-user-plus"></i> Register
+                </a>
+              </span>
+            </div>
+            <div class="card__face card__face--back">
+              <div class="login-title">{{logTitle}}</div>
+              <div class="log-items">
+                <div v-for="item in log">{{item}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="scripts/crypto-js.min.js"></script>
+    <script src="scripts/three.js"></script>
+    <script src="scripts/login.gui.js"></script>
+    <script src="scripts/vue.js"></script>
+    <script src="scripts/login.js"></script>
+  </body>
+</html>

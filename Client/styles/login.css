@@ -1,0 +1,144 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+body {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.dark-bg {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(97, 10, 209, 0.3);
+  transition: 2s;
+}
+.danger-bg {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(233, 8, 8, 0.37);
+  transition: 2s;
+}
+
+.success-bg {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(8, 233, 45, 0.521);
+  transition: 2s;
+}
+.login-box,
+.log-box {
+  padding: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 5%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.scene {
+  position: absolute;
+  display: block;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 260px;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: center right;
+  transition: transform 1s;
+}
+
+.card.is-flipped {
+  transform: translateX(-100%) rotateY(-180deg);
+}
+
+.card__face {
+  text-align: center;
+  backface-visibility: hidden;
+}
+
+.card__face--back {
+  transform: translateY(-400%) rotateY(180deg);
+}
+
+.login-title {
+  text-transform: uppercase;
+  color: white;
+  text-align: center;
+}
+.login-box input,
+.login-box button {
+  display: block;
+  margin: 20px auto;
+  padding: 5px;
+  border-radius: 5px;
+  width: 80%;
+  text-align: center;
+}
+.login-box input {
+  background: none;
+  border: none;
+  color: white;
+  padding: 50;
+  border-bottom: 1px solid red;
+}
+.login-box input:focus {
+  background: rgba(255, 255, 255, 0.5);
+  color: black;
+  padding: 5px 10px;
+}
+.login-box button {
+  text-transform: uppercase;
+}
+.login-box a {
+  text-decoration: none;
+  color: aquamarine;
+}
+.login-box button:hover {
+  cursor: pointer;
+  animation: star;
+  animation-timing-function: ease;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+}
+.card__face--back div {
+  color: white;
+  text-align: center;
+}
+.log-items {
+  text-align: justify;
+  color: red;
+}
+@keyframes star {
+  0% {
+    background-color: #7f7fd5;
+    box-shadow: inset 5px -5px 10px -5px rgb(255, 0, 0);
+  }
+  25% {
+    background-color: #86a8e7;
+    box-shadow: inset 5px 5px 10px -5px rgb(255, 0, 0);
+  }
+  50% {
+    background-color: #91eae4;
+    box-shadow: inset -5px 5px 10px -5px rgb(255, 0, 0);
+  }
+  75% {
+    background-color: #86a8e7;
+    box-shadow: inset -5px -5px 10px -5px rgb(255, 0, 0);
+  }
+  100% {
+    background-color: #7f7fd5;
+    box-shadow: inset 5px -5px 10px -5px rgb(255, 0, 0);
+  }
+}

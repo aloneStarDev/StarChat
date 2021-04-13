@@ -1,0 +1,178 @@
+
+body{
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background:#151618;
+    /* background-image: url(./regImage/binary-code-pattern-background_1142-902.jpg); */
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+/* =======================neonbtn=====================*/
+
+.classa {
+    margin-left: 30%;
+    margin-top: 5%;
+    position: relative;
+    display: inline-block;
+    padding: 15px 30px;
+    color: #2196f3;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    text-decoration: none;
+    font-size: 22px;
+    overflow: hidden;
+    transition:0.2s;
+    -webkit-box-reflect:below 20px linear-gradient(transparent,#0005);
+}
+.classa:hover{
+    color: #255784;
+    background: #2196f3;
+    box-shadow: 0 0 10px #2196f3, 0 0 40px #2196f3, 0 0 80px #2196f3;
+    transition-delay: 1s;
+} 
+.classa span{
+    align-items: center;
+    position: absolute;
+    display: block;
+}
+.classa span:nth-child(1){
+     top: 0;
+     Left: -100%;
+     width: 100%;
+     height: 2px;
+     background: linear-gradient(90deg,transparent,#2196f3);
+    }
+.classa:hover span:nth-child(1){
+    left: 100%;
+    transition: 1s;
+}
+.classa span:nth-child(3){
+    bottom: 0;
+    right:-100%;
+    width: 100%;
+    height: 2px; 
+    background: linear-gradient(270deg,transparent,#2196f3);
+}
+.classa:hover span:nth-child(3){
+   right: 100%;
+   transition: 1s;
+   transition-delay: 0.5s;
+}
+.classa span:nth-child(2){
+    top: -100%;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg,transparent,#2196f3);
+}
+.classa:hover span:nth-child(2){
+   top: 100%;
+   transition: 1s;
+   transition-delay: 0.25s;
+}
+
+.classa span:nth-child(4){
+    bottom: -100%;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(360deg,transparent,#2196f3);
+}
+.classa:hover span:nth-child(4){
+   bottom:100%;
+   transition: 1s;
+   transition-delay: 0.75s;
+} 
+/* 2196f3 */
+/*========================input fields================================*/
+.container{
+    border-radius:10px ;
+    border: skyblue;
+    border-style:groove;
+    position: relative;
+    width: 500px;
+    height: 70vh;
+    padding: 40px;
+    background: #292828f5;
+
+}
+
+.container h1{
+    color: #999;
+    margin-bottom: 45px;
+}
+.input-field{
+    position: relative;
+    height: 40px;
+    width: 100%;
+    
+}
+.input-field input{
+    position: absolute;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    font-size: 16px;
+    color: #fff;
+    width: 100%;
+}
+
+.input-field label,i{
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    color: #555;
+    pointer-events: none;
+    display: block;
+    transition: 0.5s;
+}
+.input-field input:focus + label,
+.input-field input:valid + label
+{
+    transform: translateY(-35px);
+    font-size: 14px;
+    color: #fff;
+    background: #ff006a98;
+    
+    padding: 2px 6px;
+}
+.input-field span{
+    
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: block;
+    background: #555;
+    width: 100%;
+    height: 2px;
+}
+.input-field span::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #00ccff;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.5s ease-in-out;
+
+}
+.input-field input:focus ~ span::before,
+.input-field input:valid ~ span::before
+{
+    transform: scaleX(1);
+    transform-origin: left;
+    transition: transform 0.5s ease-in-out;
+}
+/*=====================header============================*/
+  
+
+  
+  * { color:rgb(93, 175, 243); text-decoration: none;}

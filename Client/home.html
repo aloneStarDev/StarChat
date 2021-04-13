@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link type="text/css" rel="stylesheet" href="styles/home.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
+      integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w=="
+      crossorigin="anonymous"
+    />
+
+    <title>Home</title>
+    <script>
+      var uid = localStorage.getItem("id");
+      var sid = localStorage.getItem("sessionId");
+      if (uid == null || sid == null) window.location.replace("/login");
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="scripts/react.development.js"></script>
+    <script src="scripts/react-dom.development.js"></script>
+    <script src="scripts/babel.min.js"></script>
+    <script src="scripts/crypto-js.min.js"></script>
+    <script src="scripts/ConnectionManager.js"></script>
+    <script type="text/jsx" src="scripts/home.js"></script>
+  </body>
+</html>

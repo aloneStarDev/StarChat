@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link type="text/css" rel="stylesheet" href="styles/login.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+    <title>Star-Chat Signup</title>
+  </head>
+  <body>
+    <script type="text/x-shader" id="fragmentShader">
+       precision mediump float;
+       uniform float time;
+       uniform vec2 resolution;
+
+      float PI = radians(180.); // So many people hardcode PI by typing out its digits. Why not use this instead?
+
+       void main(){
+         vec2 p = gl_FragCoord.xy/resolution.xy * 0.8;
+         vec3 color = vec3(1.0);
+         float l = 0.0;
+
+         for(float i = 1.0; i < 7.0; i++){
+          p.x += 0.1 / i * cos(i * 8.0 * p.y + time + sin(time / 175.0));
+          p.y += 0.1 / i * sin(i * 12.0 * p.x + time + cos(time / 1120.0));
+          l = length(vec2(0, p.y + sin(p.x * PI * i * sin(time / 13.0))));
+         }
+
+
+        float g = 1.0 - pow(l, 0.9);
+
+         color = vec3(g * 0.14, g * 0.17, g);
+         gl_FragColor = vec4(color, 0.6);
+       }
+    </script>
+    <div id="app">
+      <div
+        v-bind:class="{'dark-bg':state==0,'danger-bg':state==1,'success-bg':state==2}"
+      >
+        <div class="scene scene--card">
+          <div class="card login-box">
+            <div class="card__face">
+              <div class="login-title">Star-Chat</div>
+              <input v-model="name" placeholder="name" />
+              <input v-model="username" placeholder="username" />
+              <input
+                type="password"
+                v-model="password"
+                placeholder="password"
+              />
+              <button class="login-btn" v-on:click="signup">signup</button>
+              <a href="/login">
+                Have Account?
+                <i class="fa fa-user" aria-hidden="true"></i>
+              </a>
+            </div>
+            <div class="card__face card__face--back">
+              <div class="login-title">{{logTitle}}</div>
+              <div v-for="item in log">
+                <div>{{item}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="scripts/crypto-js.min.js"></script>
+    <script src="scripts/three.js"></script>
+    <script src="scripts/signup.gui.js"></script>
+    <script src="scripts/vue.js"></script>
+    <script src="scripts/signup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,451 @@
+body,
+#app {
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+.container {
+  overflow-y: hidden;
+  display: flex;
+}
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar {
+  width: 30%;
+  display: inline;
+  background: rgb(136 154 143);
+  height: 100%;
+  position: absolute;
+  z-index: 1;
+}
+.contact-items {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+.contact-items li {
+  margin: 0;
+  border-bottom: 1px solid black;
+  padding: 20px 5px;
+  background-color: chocolate;
+}
+.contact-items li:hover {
+  background: white;
+}
+.main {
+  width: 70%;
+  display: inline;
+  position: absolute;
+  background: rgb(194 213 229);
+  left: 30%;
+  height: 100%;
+}
+li {
+  cursor: pointer;
+}
+.navtopr {
+  background-color: rgb(117, 110, 110);
+  height: 10%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+}
+.navtopl {
+  background-color: rgb(71 70 70);
+  height: 10%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+}
+.setting {
+  display: block;
+  width: 30%;
+  height: 100%;
+  position: absolute;
+  background: red;
+  left: -30%;
+  z-index: 2;
+}
+
+.title {
+  font-size: 8vh;
+  margin: 0 10px;
+}
+.connection-state {
+  font-size: 4vh;
+  margin: 0 10px;
+}
+.icons {
+  margin: 0 10px;
+  width: 5%;
+  text-align: center;
+  font-size: 5vh;
+  cursor: pointer;
+}
+.addContactBtn {
+  position: absolute;
+  bottom: 1vh;
+  margin: 5vh;
+  font-size: 7vh;
+  color: #abfffd;
+}
+.addContactBtn:hover {
+  color: #3b5a71;
+  cursor: pointer;
+}
+@keyframes swiprh_full {
+  /*  swip from right side - show  */
+  from {
+    left: 0%;
+  }
+  to {
+    left: 100%;
+  }
+}
+.swip_right_hide {
+  animation: swiprh_full 1s;
+}
+@keyframes swiprs_full {
+  /* swip from right side - hide */
+  from {
+    left: 100%;
+  }
+  to {
+    left: 0%;
+  }
+}
+.swip_right_show {
+  animation: swiprs_full 1s;
+}
+@keyframes swiplh_full {
+  /* swip from left side - hide */
+  from {
+    left: 0%;
+  }
+  to {
+    left: -100%;
+  }
+}
+.swip_left_hide {
+  animation: swiplh_30 1s;
+}
+@keyframes swipls_full {
+  /* swip from left side - show */
+  from {
+    left: -100%;
+  }
+  to {
+    left: 0%;
+  }
+}
+.swip_left_show {
+  animation: swipls_30 1s;
+}
+@keyframes swipls_30 {
+  from {
+    left: -30%;
+  }
+  to {
+    left: 0;
+  }
+}
+@keyframes swiplh_30 {
+  from {
+    left: 0;
+  }
+  to {
+    left: -30%;
+  }
+}
+@keyframes swipoptionhide {
+  from {
+    right: 0%;
+  }
+  to {
+    right: -30%;
+  }
+}
+@keyframes swipoptionshow {
+  from {
+    right: -30%;
+  }
+  to {
+    right: 0%;
+  }
+}
+.chatContainer {
+  padding: 0;
+  margin: 0;
+  height: 80%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.textInput {
+  display: block;
+  width: 100%;
+  height: 10%;
+  border-top: 2px solid black;
+  background-color: darkslategrey;
+  position: absolute;
+  bottom: 0;
+}
+.input-wrap div {
+  border: none;
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#progressbar {
+  height: 5px;
+  width: 0%;
+  background: red;
+}
+.media-message {
+  max-width: 75vw;
+  height: auto;
+}
+.input-wrap {
+  background: none;
+  width: 90%;
+  height: 100%;
+  float: left;
+  display: flex;
+  justify-content: center;
+  color: white;
+  font-size: 5vh;
+  overflow-wrap: break-word;
+}
+/* width */
+.input-wrap div::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+.input-wrap div::-webkit-scrollbar-track {
+  background: none;
+}
+
+/* Handle */
+.input-wrap div::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+.input-wrap div ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.message-container {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /*=========complite later=========*/
+  overflow-y: scroll;
+}
+.send-icon-wrap {
+  transition: 1s;
+  cursor: pointer;
+  display: flex;
+  right: 0;
+  margin-right: 5px;
+  position: absolute;
+  height: 100%;
+  margin-right: 10px;
+  width: fit-content;
+
+  justify-content: center;
+  align-items: center;
+  font-size: 5vh;
+  color: aqua;
+}
+.send-icon-wrap i {
+  transition: 1s;
+  cursor: pointer;
+  transform: rotate(45deg);
+}
+.send-icon-wrap i:hover {
+  transition: 1s;
+  cursor: pointer;
+  transform: rotate(0deg);
+}
+.leftMessage {
+  float: left;
+  background: gray;
+  margin: 5px;
+  border: 1px solid red;
+  border-radius: 10px;
+  max-width: 60%;
+  width: fit-content;
+  border-bottom-left-radius: 0;
+}
+.rightMessage {
+  float: right;
+  background: gray;
+  margin: 5px;
+  border: 1px solid red;
+  border-radius: 10px;
+  width: fit-content;
+  max-width: 60%;
+  border-bottom-right-radius: 0;
+}
+.msg-content {
+  margin: 5px;
+  text-align: left;
+  padding: 0 20px;
+  overflow-wrap: break-word;
+  line-height: 10%;
+}
+.msg-content img,video{
+  width: 100%;
+  height: auto;
+}
+
+.time {
+  margin: 1% 2%;
+  font-size: 1.8vh;
+  float: right;
+}
+.msg-state {
+  float: left;
+  padding-left: 5%;
+  font-size: 1.8vh;
+}
+.swip_right {
+  animation: swipright_30 1s;
+}
+.swip_left {
+  animation: swipleft_30 1s;
+}
+#hideOption {
+  display: none;
+}
+.hideOptions {
+  animation: swipoptionhide 1s;
+}
+.showOptions {
+  animation: swipoptionshow 1s;
+}
+
+.options {
+  display: none;
+  position: absolute;
+  background: red;
+  right: 0%;
+  z-index: 1;
+  right: -30%;
+}
+.options ul {
+  padding: 0;
+  margin: 0;
+  background: blue;
+}
+.options ul li {
+  background: grey;
+  text-align: center;
+  padding: 10px 30px;
+  list-style: none;
+}
+.options ul li:hover {
+  background: rgb(160, 160, 160);
+  text-align: center;
+  padding: 10px 30px;
+  list-style: none;
+}
+.wide_hide {
+  display: none;
+}
+.settingSide {
+  height: 94%;
+}
+.search-input {
+  width: 100%;
+  padding: 0;
+  margin: 10px 0;
+  font-size: 4.5vh;
+  border: none;
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+.alert-green {
+  width: fit-content;
+  position: absolute;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 5vh;
+  bottom: 0;
+  right: 0;
+  background: green;
+}
+.unseen-count {
+  display: inline;
+  position: relative;
+  float: right;
+  padding: 0px 6px;
+  margin: 0 5px;
+  background: #0df65f;
+  border-radius: 30%;
+}
+@media only screen and (max-width: 740px) {
+  body,
+  #app {
+    padding: 0;
+    margin: 0;
+  }
+  .container {
+    display: block;
+  }
+  .sidebar {
+    width: 100%;
+    left: 0%;
+  }
+  .main {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: -100%;
+    z-index: 2;
+  }
+  .setting {
+    width: 100%;
+    left: -100%;
+  }
+  .navtopr {
+    height: 10%;
+  }
+  .navtopl {
+    height: 10%;
+  }
+
+  .rightMessage {
+    max-width: 100%;
+  }
+  .leftMessage {
+    max-width: 100%;
+  }
+
+  .swip_left_hide {
+    animation: swiplh_full 1s;
+  }
+  .swip_left_show {
+    animation: swipls_full 1s;
+  }
+  .wide_hide {
+    display: block;
+  }
+}

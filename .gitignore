@@ -1,0 +1,7 @@
+.vscode/
+CsharpClient/obj/
+CsharpClient/bin/
+CsharpClient/.idea/
+Client/node_modules
+MobileClient/star-chat/node_modules
+Server/node_modules
