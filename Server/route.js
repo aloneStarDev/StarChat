@@ -4,24 +4,18 @@ var repository = require("./repository");
 var formidable = require("formidable");
 let crypto = require("crypto");
 var mime = require("mime-types");
-
 module.exports = function (app) {
   app.use(bodyParser.json());
   app.use("/scripts", scripts, notFound);
   app.use("/styles", styles, notFound);
   app.use("/storage", storage, notFound);
-  app.all("/test", (req, res) => {
-    fs.readFile("../Client/ServerUnitTest.html", (err, data) => {
-      res.writeHeader(200, { "Content-Type": "text/html" });
-      res.write(data);
-      res.end();
-    });
-  });
   app.all("/signup", signup);
   app.all("/login", login);
   app.all("/forget", forget);
   app.all("/home", home);
-  app.all("/upload", upload);
+  app.all("/uploadMessage", (req, res) => {
+    uploadMessage(req, res, app.connector);
+  });
 };
 
 function login(req, res) {
@@ -157,7 +151,7 @@ function checkhash(path, callback) {
     callback(sha256sum);
   });
 }
-function upload(req, res) {
+function uploadMessage(req, res, connector) {
   const storage = "D:\\workspace\\StarChat\\Client\\storage\\";
   if (req.method === "POST") {
     var form = new formidable({ maxFileSize: 1000 * 1024 * 1024 }); // 1GB upload limit
@@ -169,22 +163,38 @@ function upload(req, res) {
         res.end();
       } else {
         var fks = Object.keys(files);
-        var saveFiles = () => {
+        var saveFiles = (msg) => {
           let cnt = 0;
           fks.forEach((fid) => {
             if (files[fid].hasOwnProperty("sha")) {
               fs.copyFile(files[fid].path, storage + files[fid].sha, (err) => {
                 if (!err) {
-                  fs.rm(files[fid].path, (err) => { if(err) console.error(err); });
+                  fs.rm(files[fid].path, (err) => {
+                    if (err) console.error(err);
+                  });
                   cnt++;
-                }else console.error(err); 
-                if (cnt == fks.length) res.write(JSON.stringify({ ok: true }));
+                } else console.error(err);
+                if (cnt == fks.length) {
+                  res.write(JSON.stringify({ ok: true }));
+                  if (connector.online.hasOwnProperty(msg.contact)) {
+                    update = {
+                      type: "message",
+                      data: msg,
+                    };
+                    connector.sendResponse(
+                      connector.online[msg.contact].socket,
+                      "update",
+                      update
+                    );
+                  }
+                }
               });
               repository.addFile(
                 files[fid].sha,
                 files[fid].type,
                 files[fid].name
               );
+              repository.checkMessage(msg._id.toString());
             } else fs.unlink(files[fid].path);
           });
         };
@@ -215,7 +225,7 @@ function upload(req, res) {
                     }
                     files[fid].sha = hash;
                     n++;
-                    if (n == fks.length) saveFiles();
+                    if (n == fks.length) saveFiles(msg);
                   });
                 });
               } else throw new Error();
@@ -223,10 +233,6 @@ function upload(req, res) {
             .catch((err) => {
               removeFiles();
             });
-        } else if (field.hasOwnProperty("uid")) {
-          //save user profile media
-        } else {
-          let n = 0;
         }
       }
     });

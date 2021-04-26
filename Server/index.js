@@ -1,4 +1,5 @@
 var repo = require("./repository");
-var http = require("./HttpServer");
-var ws = require("./WebSocketServer");
+var connector = require("./WebSocketServer");
+var { app } = require("./HttpServer");
+app.connector = connector;
 repo.seed();

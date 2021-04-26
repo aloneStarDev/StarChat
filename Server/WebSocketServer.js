@@ -202,6 +202,7 @@ function wsSendMessage(ws, data) {
       date: new Date(),
       deleted: false,
       updated: false,
+      check: true,
     };
     if (data.hasOwnProperty("replay")) msg.replay = data.replay;
     if (data.hasOwnProperty("forward")) msg.forward = data.forward;
@@ -210,7 +211,11 @@ function wsSendMessage(ws, data) {
     Emiter.on("send", (resp) => {
       if (resp.ok) {
         if (data.hasOwnProperty("token")) resp.data.token = data.token;
-        if (online.hasOwnProperty(msg.contact) && data.contact != ws.uid) {
+        if (
+          online.hasOwnProperty(msg.contact) &&
+          data.contact != ws.uid &&
+          msg.check
+        ) {
           msg._id = resp.data.id;
           update = {
             type: "message",
@@ -318,3 +323,4 @@ function sendResponse(ws, method, options) {
   if (options.err != undefined) resp.err = options.err;
   ws.send(JSON.stringify(resp));
 }
+module.exports = { online, sendResponse };

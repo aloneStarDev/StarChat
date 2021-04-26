@@ -4,10 +4,9 @@ const mongoURL = "mongodb://127.0.0.1:27017";
 const adaptor = require("./adaptor");
 
 module.exports.seed = async function () {
-  var client = new MongoClient(mongoURL, {useUnifiedTopology: true});
+  var client = new MongoClient(mongoURL, { useUnifiedTopology: true });
   await client.connect((err, cli) => {
-    if (err)
-      console.error(err);
+    if (err) console.error(err);
     var dbo = cli.db(dbname);
     dbo.collection("users").findOne({ username: "support" }, (err, res) => {
       if (res == null) {
@@ -283,14 +282,14 @@ module.exports.addContact = async function (uid, pid, emiter, options = {}) {
       });
       if (res) {
         resp.data = {
-          _id:res,
+          _id: res,
           user: uid,
           peer: pid,
           username: user.username,
           name: user.name,
           mute: false,
           stranger: options.stranger,
-        }
+        };
         if (user.state == "offline") resp.data.lastseen = user.lastseen;
         emiter.emit("send", resp);
       } else {
@@ -640,4 +639,11 @@ module.exports.addFile = async function (hash, type, name) {
 };
 module.exports.getFile = async function (hash) {
   return await adaptor.getFile({ _id: hash });
+};
+
+module.exports.checkMessage = async function (mid) {
+  return await adaptor.updateMessage(
+    { _id: new ObjectId(mid) },
+    { $set: { check: true } }
+  );
 };
